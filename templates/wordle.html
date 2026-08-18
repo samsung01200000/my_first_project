@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Wordle</title>
+    <style>
+        body { background: #1a1a2e; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; flex-direction: column; font-family: Arial; }
+        .grid { display: grid; grid-template-columns: repeat(5, 60px); gap: 5px; margin: 20px; }
+        .cell { width: 60px; height: 60px; background: #16213e; border: 2px solid #e94560; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; }
+        .green { background: #4caf50; }
+        .yellow { background: #ffc107; }
+        .gray { background: #555; }
+        input { padding: 10px; font-size: 18px; }
+        button { padding: 10px 20px; background: #e94560; color: white; border: none; cursor: pointer; }
+        .back-btn { color: #e94560; text-decoration: none; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>📝 Wordle</h1>
+    <div id="grid" class="grid"></div>
+    <input id="guessInput" placeholder="أدخل كلمة من 5 حروف" maxlength="5">
+    <button onclick="makeGuess()">خمّن</button>
+    <p id="message"></p>
+    <a href="/" class="back-btn">⬅ رجوع</a>
+
+    <script>
+        let secretWord = '';
+
+        fetch('/get-word/')
+            .then(res => res.json())
+            .then(data => { secretWord = data.word; });
+
+        const grid = document.getElementById('grid');
+        const guessInput = document.getElementById('guessInput');
+        const messageEl = document.getElementById('message');
+        const maxAttempts = 6;
+        let attempts = 0;
+        let gameOver = false;
+
+        function createGrid() {
+            grid.innerHTML = '';
+            for (let i = 0; i < maxAttempts * 5; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.id = `cell-${i}`;
+                grid.appendChild(cell);
+            }
+        }
+        createGrid();
+
+        function makeGuess() {
+            if (gameOver) return;
+            const guess = guessInput.value.toLowerCase().trim();
+            if (guess.length !== 5) return alert('أدخل كلمة من 5 حروف!');
+            if (attempts >= maxAttempts) return;
+
+            const start = attempts * 5;
+            let correctCount = 0;
+            for (let i = 0; i < 5; i++) {
+                const cell = document.getElementById(`cell-${start + i}`);
+                cell.textContent = guess[i];
+                if (guess[i] === secretWord[i]) {
+                    cell.className = 'cell green';
+                    correctCount++;
+                } else if (secretWord.includes(guess[i])) {
+                    cell.className = 'cell yellow';
+                } else {
+                    cell.className = 'cell gray';
+                }
+            }
+            attempts++;
+            guessInput.value = '';
+
+            if (correctCount === 5) {
+                messageEl.textContent = '🎉 تهانينا! فزت!';
+                gameOver = true;
+            } else if (attempts === maxAttempts) {
+                messageEl.textContent = `😔 انتهت المحاولات. الكلمة كانت: ${secretWord}`;
+                gameOver = true;
+            }
+        }
+    </script>
+</body>
+</html>

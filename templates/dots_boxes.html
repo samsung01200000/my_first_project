@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dots & Boxes</title>
+    <style>
+        body { background: #1a1a2e; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; flex-direction: column; font-family: Arial; }
+        canvas { background: #16213e; border: 2px solid #e94560; }
+        .back-btn { color: #e94560; text-decoration: none; margin-top: 20px; }
+        .info { margin-bottom: 20px; font-size: 20px; }
+    </style>
+</head>
+<body>
+    <h1>🔵 Dots & Boxes</h1>
+    <div class="info">Turn: <span id="turn">Player 1</span></div>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <a href="/" class="back-btn">⬅ رجوع</a>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const turnEl = document.getElementById('turn');
+        const size = 4;
+        const cellSize = 100;
+        const dotRadius = 8;
+        let boxes = Array(size-1).fill().map(() => Array(size-1).fill(0));
+        let lines = Array(size-1).fill().map(() => Array(size).fill(0));
+        let linesV = Array(size).fill().map(() => Array(size-1).fill(0));
+        let currentPlayer = 1;
+        let gameOver = false;
+
+        function drawDots() {
+            for (let i = 0; i < size; i++) {
+                for (let j = 0; j < size; j++) {
+                    ctx.beginPath();
+                    ctx.arc(i * cellSize + cellSize/2, j * cellSize + cellSize/2, dotRadius, 0, Math.PI * 2);
+                    ctx.fillStyle = 'white';
+                    ctx.fill();
+                }
+            }
+        }
+
+        function drawLines() {
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 4;
+            for (let i = 0; i < size-1; i++) {
+                for (let j = 0; j < size; j++) {
+                    if (lines[i][j]) {
+                        ctx.beginPath();
+                        ctx.moveTo(i * cellSize + cellSize/2, j * cellSize + cellSize/2);
+                        ctx.lineTo((i+1) * cellSize + cellSize/2, j * cellSize + cellSize/2);
+                        ctx.stroke();
+                    }
+                }
+            }
+            for (let i = 0; i < size; i++) {
+                for (let j = 0; j < size-1; j++) {
+                    if (linesV[i][j]) {
+                        ctx.beginPath();
+                        ctx.moveTo(i * cellSize + cellSize/2, j * cellSize + cellSize/2);
+                        ctx.lineTo(i * cellSize + cellSize/2, (j+1) * cellSize + cellSize/2);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        function drawBoxes() {
+            for (let i = 0; i < size-1; i++) {
+                for (let j = 0; j < size-1; j++) {
+                    if (boxes[i][j]) {
+                        ctx.fillStyle = boxes[i][j] === 1 ? '#e94560' : '#4caf50';
+                        ctx.fillRect(i * cellSize + 5, j * cellSize + 5, cellSize - 10, cellSize - 10);
+                    }
+                }
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawDots();
+            drawLines();
+            drawBoxes();
+        }
+
+        function checkBoxes() {
+            let anyBox = false;
+            for (let i = 0; i < size-1; i++) {
+                for (let j = 0; j < size-1; j++) {
+                    if (boxes[i][j] === 0 && lines[i][j] && lines[i+1][j] && linesV[i][j] && linesV[i][j+1]) {
+                        boxes[i][j] = currentPlayer;
+                        anyBox = true;
+                    }
+                }
+            }
+            if (anyBox) {
+                if (boxes.flat().every(b => b !== 0)) {
+                    gameOver = true;
+                    alert('🎉 Game Over!');
+                }
+                return true;
+            }
+            return false;
+        }
+
+        canvas.addEventListener('click', (e) => {
+            if (gameOver) return;
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const col = Math.round((x - cellSize/2) / cellSize);
+            const row = Math.round((y - cellSize/2) / cellSize);
+            if (col < 0 || col >= size || row < 0 || row >= size) return;
+
+            const dx = x - (col * cellSize + cellSize/2);
+            const dy = y - (row * cellSize + cellSize/2);
+
+            if (Math.abs(dx) < 30 && Math.abs(dy) < 30) return;
+
+            if (Math.abs(dx) > Math.abs(dy)) {
+                if (col < size-1 && lines[col][row] === 0) {
+                    lines[col][row] = 1;
+                    if (!checkBoxes()) currentPlayer = currentPlayer === 1 ? 2 : 1;
+                    turnEl.textContent = currentPlayer === 1 ? 'Player 1' : 'Player 2';
+                }
+            } else {
+                if (row < size-1 && linesV[col][row] === 0) {
+                    linesV[col][row] = 1;
+                    if (!checkBoxes()) currentPlayer = currentPlayer === 1 ? 2 : 1;
+                    turnEl.textContent = currentPlayer === 1 ? 'Player 1' : 'Player 2';
+                }
+            }
+            draw();
+        });
+
+        draw();
+    </script>
+</body>
+</html>
