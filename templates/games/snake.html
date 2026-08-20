@@ -25,29 +25,11 @@
         let score = 0;
         let gameOver = false;
 
-        function getCSRFToken() {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, 10) === 'csrftoken=') {
-                        cookieValue = decodeURIComponent(cookie.substring(10));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
-        }
-
         function saveScore() {
             const playerName = playerNameEl.value || 'Player';
             fetch('/save-score/', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCSRFToken()
-                },
+                headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({player_name: playerName, game: 'snake', score: score})
             });
         }

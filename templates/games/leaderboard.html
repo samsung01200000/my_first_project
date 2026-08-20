@@ -1,0 +1,23 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Leaderboard</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <h1>🏆 Leaderboard</h1>
+    {% for game, scores in leaderboard.items %}
+    <h2>{{ game|upper }}</h2>
+    <ul>
+        {% for entry in scores %}
+        <li>{{ entry.player }}: {{ entry.score }}</li>
+        {% empty %}
+        <li>No scores yet</li>
+        {% endfor %}
+    </ul>
+    {% endfor %}
+    <br>
+    <a href="/" class="back-btn">⬅ رجوع</a>
+</body>
+</html>
